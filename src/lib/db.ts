@@ -1,17 +1,15 @@
 // src/lib/db.ts
 import { PrismaClient } from "@prisma/client";
 
-// Declare a global variable to store PrismaClient instance
-declare global {
-  var prismaGlobal: PrismaClient | undefined;
+interface GlobalPrisma {
+  prismaGlobal?: PrismaClient;
 }
 
-// Create a new PrismaClient instance if not already defined globally
-const prisma = global.prismaGlobal || new PrismaClient();
+const globalWithPrisma = global as typeof globalThis & GlobalPrisma;
+const prisma = globalWithPrisma.prismaGlobal || new PrismaClient();
 
-// Assign the PrismaClient instance to the global variable in development
 if (process.env.NODE_ENV !== "production") {
-  global.prismaGlobal = prisma;
+  (global as typeof globalThis & GlobalPrisma).prismaGlobal = prisma;
 }
 
 export default prisma;
