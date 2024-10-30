@@ -44,7 +44,7 @@ const rooms = [
 ];
 
 export default function Home() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 py-8 px-4">
@@ -95,7 +95,7 @@ export default function Home() {
             <Card className="bg-slate-800 border-slate-700">
               <CardHeader>
                 <CardTitle>Online Users</CardTitle>
-                <CardDescription>See who's currently online</CardDescription>
+                <CardDescription>See who is currently online</CardDescription>
               </CardHeader>
               <CardContent>
                 <ScrollArea className="h-[300px]">
