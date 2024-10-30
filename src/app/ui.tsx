@@ -34,13 +34,18 @@ const rooms = [
     id: "1",
     name: "General Chat",
     description: "Open discussion for all topics",
+    image: "",
   },
   {
     id: "2",
     name: "Tech Talk",
     description: "Discuss the latest in technology",
+    image: "",
   },
-  { id: "3", name: "Book Club", description: "Share your favorite reads" },
+  { id: "3", name: "Book Club", description: "Share your favorite reads",
+  image: "",
+  },
+  
 ];
 
 export default function Home() {
@@ -77,18 +82,26 @@ export default function Home() {
                 <ScrollArea className="h-[300px]">
                   {rooms.map((room) => (
                     <Link href={`/room/${room.id}`} key={room.id}>
-                      <div className="p-4 hover:bg-slate-700 rounded-lg mb-2 cursor-pointer">
+                      
+                      <div className="flex items-center space-x-4 mb-4 p-4 hover:bg-slate-700 rounded-lg cursor-pointer">
+                      <Avatar className="">
+                        <AvatarImage src={room.image} alt={room.name} />
+                        <AvatarFallback className="bg-gray-600">{room.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <div>
+
                         <h3 className="font-semibold">{room.name}</h3>
                         <p className="text-sm text-slate-400">
                           {room.description}
                         </p>
                       </div>
+                    </div>
                     </Link>
                   ))}
                 </ScrollArea>
               </CardContent>
               <CardFooter>
-                <Button className="w-full">Create New Room</Button>
+                <Button className="w-full bg-blue-600">Create New Room</Button>
               </CardFooter>
             </Card>
 
@@ -102,11 +115,11 @@ export default function Home() {
                   {users.map((user) => (
                     <div
                       key={user.id}
-                      className="flex items-center space-x-4 mb-4"
+                      className="flex items-center space-x-4 mb-4 p-4 hover:bg-slate-700 rounded-lg cursor-pointer"
                     >
                       <Avatar>
                         <AvatarImage src={user.image} alt={user.name} />
-                        <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                        <AvatarFallback className="bg-gray-600">{user.name.charAt(0)}</AvatarFallback>
                       </Avatar>
                       <div>
                         <p className="font-medium">{user.name}</p>
