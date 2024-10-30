@@ -68,7 +68,7 @@ export default function ChatGroupPage() {
     },
   ]);
   const [newMessage, setNewMessage] = useState("");
-  const { data: session } = useSession();
+  const { data: session } = useSession() as { data: { user: { id: string; name?: string | null; email?: string | null; image?: string | null; } } | null };
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -83,7 +83,7 @@ export default function ChatGroupPage() {
       const messageData = {
         id: String(messages.length + 1),
         content: newMessage,
-        userId: session.user.id || "1", // Fallback to '1' if session.user.id is undefined
+        userId: session?.user?.id || "1", // Fallback to '1' if session.user.id is undefined
         timestamp: new Date(),
       };
       setMessages([...messages, messageData]);
