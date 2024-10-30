@@ -5,6 +5,7 @@ export default function Home() {
     <div className="">
       <h2>Hello World</h2>
       <Link href={"api/auth/signin"}> Sign In</Link>
+      <Link href={"room"}> Room</Link>
     </div>
   );
 }
