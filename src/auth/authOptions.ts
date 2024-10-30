@@ -1,7 +1,7 @@
 // src/auth/authOptions.ts
 import prisma from '@/lib/db'; // Import from db.ts
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
-import { NextAuthOptions, Session, User } from 'next-auth/';
+import { NextAuthOptions, Session, User } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 
 export const authOptions: NextAuthOptions = {
