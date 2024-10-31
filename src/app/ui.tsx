@@ -1,7 +1,7 @@
-"use client";
+'use client'
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -9,25 +9,13 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { useSession } from "next-auth/react";
-import Link from "next/link";
+} from "@/components/ui/card"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { useSession } from "next-auth/react"
+import Link from "next/link"
+import { useEffect, useState } from 'react'
 
-// Placeholder data
-const users = [
-  {
-    id: "1",
-    name: "Alice Johnson",
-    image: "/placeholder.svg?height=40&width=40",
-  },
-  { id: "2", name: "Bob Smith", image: "/placeholder.svg?height=40&width=40" },
-  {
-    id: "3",
-    name: "Charlie Brown",
-    image: "/placeholder.svg?height=40&width=40",
-  },
-];
+import { fetchUsers } from '@/actions/actions'
 
 const rooms = [
   {
@@ -42,14 +30,27 @@ const rooms = [
     description: "Discuss the latest in technology",
     image: "",
   },
-  { id: "3", name: "Book Club", description: "Share your favorite reads",
-  image: "",
+  {
+    id: "3",
+    name: "Book Club",
+    description: "Share your favorite reads",
+    image: "",
   },
-  
-];
+]
 
 export default function Home() {
-  const { status } = useSession();
+  const { status } = useSession()
+  const [users, setUsers] = useState<{ id: string; name: string | null; email: string; image: string | null; }[]>([])
+
+  useEffect(() => {
+    async function loadUsers() {
+      if (status === 'authenticated') {
+        const fetchedUsers = await fetchUsers()
+        setUsers(fetchedUsers)
+      }
+    }
+    loadUsers()
+  }, [status])
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 py-8 px-4">
@@ -82,26 +83,24 @@ export default function Home() {
                 <ScrollArea className="h-[300px]">
                   {rooms.map((room) => (
                     <Link href={`/room/${room.id}`} key={room.id}>
-                      
                       <div className="flex items-center space-x-4 mb-4 p-4 hover:bg-slate-700 rounded-lg cursor-pointer">
-                      <Avatar className="">
-                        <AvatarImage src={room.image} alt={room.name} />
-                        <AvatarFallback className="bg-gray-600">{room.name.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <div>
-
-                        <h3 className="font-semibold">{room.name}</h3>
-                        <p className="text-sm text-slate-400">
-                          {room.description}
-                        </p>
+                        <Avatar className="">
+                          <AvatarImage src={room.image} alt={room.name} />
+                          <AvatarFallback className="bg-gray-600">{room.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <h3 className="font-semibold">{room.name}</h3>
+                          <p className="text-sm text-slate-400">
+                            {room.description}
+                          </p>
+                        </div>
                       </div>
-                    </div>
                     </Link>
                   ))}
                 </ScrollArea>
               </CardContent>
               <CardFooter>
-                <Button className="w-full bg-blue-600">Create New Room</Button>
+                <Button className="w-full bg-blue-600 hover:bg-blue-700">Create New Room</Button>
               </CardFooter>
             </Card>
 
@@ -118,8 +117,8 @@ export default function Home() {
                       className="flex items-center space-x-4 mb-4 p-4 hover:bg-slate-700 rounded-lg cursor-pointer"
                     >
                       <Avatar>
-                        <AvatarImage src={user.image} alt={user.name} />
-                        <AvatarFallback className="bg-gray-600">{user.name.charAt(0)}</AvatarFallback>
+                        <AvatarImage src={user.image ?? `/placeholder.svg?height=40&width=40`} alt={user.name || 'User'} />
+                        <AvatarFallback className="bg-gray-600">{user.name?.charAt(0) || 'U'}</AvatarFallback>
                       </Avatar>
                       <div>
                         <p className="font-medium">{user.name}</p>
@@ -127,6 +126,7 @@ export default function Home() {
                       </div>
                     </div>
                   ))}
+                  {users.length === 0 && <p className="text-center">No users online</p>}
                 </ScrollArea>
               </CardContent>
             </Card>
@@ -134,5 +134,5 @@ export default function Home() {
         )}
       </div>
     </div>
-  );
+  )
 }
