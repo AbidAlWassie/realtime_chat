@@ -8,27 +8,31 @@ datasource db {
 }
 
 model User {
-  id            String          @id @default(cuid())
-  name          String?
-  email         String          @unique
-  emailVerified DateTime?
-  image         String?
-  accounts      Account[]
-  sessions      Session[]
-  authenticator Authenticator[] // Optional for WebAuthn support
+  id               String          @id @default(cuid())
+  name             String?
+  email            String          @unique
+  emailVerified    DateTime?
+  image            String?
+  accounts         Account[]
+  sessions         Session[]
+  authenticator    Authenticator[] // Optional for WebAuthn support
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  posts         Message[] // A user can have many posts
+  messages         Message[]       // Messages associated with the user
+  rooms            Room[]          @relation("RoomUsers") // Rooms the user has joined
+  sentMessages     DirectMessage[] @relation("SentMessages") // Direct messages sent by the user
+  receivedMessages DirectMessage[] @relation("ReceivedMessages") // Direct messages received by the user
 }
 
 model Message {
-  id        String     @id @default(cuid())
+  id        String   @id @default(cuid())
   content   String
   userId    String
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt DateTime   @default(now())
+  roomId    String? // Nullable for direct messages
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  room      Room?   @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
 }
 
 model Account {
@@ -43,9 +47,8 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -84,4 +87,24 @@ model Authenticator {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([userId, credentialID])
+}
+
+model Room {
+  id          String     @id @default(cuid())
+  image       String?    // Optional room image
+  name        String?    // Optional room name
+  description String?    // Optional description name
+  users       User[]     @relation("RoomUsers") // Users who joined the room
+  messages    Message[]  // Messages sent in the room
+  createdAt   DateTime   @default(now())
+}
+
+model DirectMessage {
+  id        String    @id @default(cuid())
+  content   String
+  senderId  String    // ID of the user who sent the message
+  receiverId String   // ID of the user receiving the message
+  sender    User      @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver  User      @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
 }

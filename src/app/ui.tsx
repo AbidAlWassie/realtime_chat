@@ -15,41 +15,30 @@ import { useSession } from "next-auth/react"
 import Link from "next/link"
 import { useEffect, useState } from 'react'
 
-import { fetchUsers } from '@/actions/actions'
-
-const rooms = [
-  {
-    id: "1",
-    name: "General Chat",
-    description: "Open discussion for all topics",
-    image: "",
-  },
-  {
-    id: "2",
-    name: "Tech Talk",
-    description: "Discuss the latest in technology",
-    image: "",
-  },
-  {
-    id: "3",
-    name: "Book Club",
-    description: "Share your favorite reads",
-    image: "",
-  },
-]
+import { fetchRooms, fetchUsers } from '@/actions/actions'
+import CreateRoom from '@/components/layouts/CreateRoom'
 
 export default function Home() {
   const { status } = useSession()
   const [users, setUsers] = useState<{ id: string; name: string | null; email: string; image: string | null; }[]>([])
+  const [rooms, setRooms] = useState<{ id: string; name: string; description: string; }[]>([])
 
   useEffect(() => {
-    async function loadUsers() {
+    async function loadData() {
       if (status === 'authenticated') {
-        const fetchedUsers = await fetchUsers()
+        const [fetchedUsers, fetchedRooms] = await Promise.all([
+          fetchUsers(),
+          fetchRooms()
+        ])
         setUsers(fetchedUsers)
+        setRooms(fetchedRooms.map(room => ({
+          ...room,
+          name: room.name || 'Untitled Room',
+          description: room.description || 'No description available',
+        })))
       }
     }
-    loadUsers()
+    loadData()
   }, [status])
 
   return (
@@ -85,7 +74,7 @@ export default function Home() {
                     <Link href={`/room/${room.id}`} key={room.id}>
                       <div className="flex items-center space-x-4 mb-4 p-4 hover:bg-slate-700 rounded-lg cursor-pointer">
                         <Avatar className="">
-                          <AvatarImage src={room.image} alt={room.name} />
+                          <AvatarImage src={`/placeholder.svg?height=40&width=40`} alt={room.name} />
                           <AvatarFallback className="bg-gray-600">{room.name.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div>
@@ -97,10 +86,11 @@ export default function Home() {
                       </div>
                     </Link>
                   ))}
+                  {rooms.length === 0 && <p className="text-center">No rooms available</p>}
                 </ScrollArea>
               </CardContent>
               <CardFooter>
-                <Button className="w-full bg-blue-600 hover:bg-blue-700">Create New Room</Button>
+                <CreateRoom />
               </CardFooter>
             </Card>
 
