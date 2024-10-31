@@ -14,10 +14,10 @@
     "socket.io": "^4.8.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.7",
-    "typescript": "^5.6.3",
-    "ts-node": "^10.9.1",
+    "@types/express": "^5.0.0",
     "@types/node": "^18.11.18",
-    "@types/express": "^5.0.0"
+    "nodemon": "^3.1.7",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.6.3"
   }
 }
