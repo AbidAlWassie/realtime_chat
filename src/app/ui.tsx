@@ -45,7 +45,7 @@ export default function Home() {
     <div className="min-h-screen bg-slate-900 text-slate-100 py-8 px-4">
       <div className="max-w-6xl mx-auto">
         <h1 className="text-3xl font-bold mb-8 text-center">
-          Welcome to Our Chat App
+          Welcome to my Chat App
         </h1>
 
         {status === "loading" && <p className="text-center">Loading...</p>}
