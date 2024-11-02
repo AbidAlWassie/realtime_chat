@@ -8,7 +8,8 @@ import io, { Socket } from "socket.io-client";
 
 interface Message {
   message: string;
-  senderName: string; // Changed from senderId to senderName
+  senderId: string;
+  senderName: string;
   room: string;
 }
 
@@ -29,7 +30,8 @@ export default function RoomUI({ roomId }: RoomUIProps) {
     if (message.trim() && socketRef.current) {
       const newMessage = {
         message,
-        senderName: session?.user?.name || "Anonymous", // Use the user's name or "Anonymous" if not available
+        senderId: session?.user?.email || "anonymous",
+        senderName: session?.user?.name || "Anonymous",
         room: roomId,
       };
       console.log("Sending message:", newMessage);
