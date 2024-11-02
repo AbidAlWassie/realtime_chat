@@ -1,6 +1,5 @@
 // import SessionProvider from "@/components/SessionProvider";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import Footer from "@/components/layouts/Footer";
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
@@ -33,7 +32,6 @@ export default function RootLayout({
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}
-          <Footer />
         </ThemeProvider>
         {/* <SessionProvider>{children}</SessionProvider> */}
       </body>

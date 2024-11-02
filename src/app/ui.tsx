@@ -17,6 +17,7 @@ import { useEffect, useState } from 'react'
 
 import { fetchRooms, fetchUsers } from '@/actions/actions'
 import CreateRoom from '@/components/layouts/CreateRoom'
+import Footer from "@/components/layouts/Footer"
 
 export default function Home() {
   const { status } = useSession()
@@ -53,9 +54,11 @@ export default function Home() {
         {status === "unauthenticated" && (
           <div className="text-center">
             <p className="mb-4">Please sign in to access the chat rooms.</p>
-            <Button asChild>
+            <Button asChild className="bg-indigo-600 text-indigo-50 hover:bg-indigo-700">
               <Link href="/api/auth/signin">Sign In</Link>
             </Button>
+
+            <Footer />
           </div>
         )}
 
