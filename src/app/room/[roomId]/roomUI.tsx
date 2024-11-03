@@ -46,7 +46,7 @@ export default function RoomUI({ roomId }: RoomUIProps) {
     const formattedMessages = initialMessages.map(msg => ({
       ...msg,
       senderId: msg.senderName || "unknown",
-      senderName: msg.senderName === session?.user?.name ? "You" : (msg.senderName || "unknown"),
+      senderName: msg.senderId === session?.user?.id ? "You" : (msg.senderName || "unknown"),
       room: roomId,
     }));
     setMessages(formattedMessages);

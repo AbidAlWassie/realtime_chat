@@ -100,7 +100,7 @@ export async function fetchMessages(roomId: string) {
   const messages = await prisma.message.findMany({
     where: { roomId },
     include: {
-      user: { select: { name: true } }, // Include user name for each message
+      user: { select: { name: true, createdAt: true, id: true } }, // Include user name for each message
     },
     orderBy: { createdAt: "asc" }, // Order messages by creation time
   });
@@ -111,5 +111,6 @@ export async function fetchMessages(roomId: string) {
     content: message.content,
     createdAt: message.createdAt,
     senderName: message.user.name,
+    senderId: message.userId,
   }));
 }

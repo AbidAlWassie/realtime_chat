@@ -14,11 +14,14 @@ export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
-    async session({ session, user }: { session: Session; user?: User }) {
+    async session({ session, user }: { session: Session; user: User }) {
       if (user && session?.user) {
+        session.user.id = user.id;
         session.user.email = user.email;
+        session.user.name = user.name;
+        session.user.image = user.image;
       }
       return session;
     },
-  },
+  },  
 };
