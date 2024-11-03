@@ -25,7 +25,7 @@ interface Message {
   room: string;
 }
 
-const serverAddress = "http://localhost:3001";
+const serverAddress = process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "http://localhost:3001";
 
 interface RoomUIProps {
   roomId: string;
