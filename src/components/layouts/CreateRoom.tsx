@@ -51,7 +51,7 @@ export default function CreateRoom() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="default">Create New Room</Button>
+        <Button variant="default" className="bg-indigo-600 hover:bg-indigo-700">Create Room</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>

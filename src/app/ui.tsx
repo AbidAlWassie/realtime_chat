@@ -100,8 +100,8 @@ export default function Home() {
 
             <Card className="bg-slate-800 border-slate-700">
               <CardHeader>
-                <CardTitle>Online Users</CardTitle>
-                <CardDescription>See who is currently online</CardDescription>
+                <CardTitle>Active Users</CardTitle>
+                <CardDescription>See who is currently active</CardDescription>
               </CardHeader>
               <CardContent>
                 <ScrollArea className="h-[300px]">
@@ -116,11 +116,11 @@ export default function Home() {
                       </Avatar>
                       <div>
                         <p className="font-medium">{user.name}</p>
-                        <p className="text-sm text-slate-400">Online</p>
+                        <p className="text-sm text-slate-400">Active</p>
                       </div>
                     </div>
                   ))}
-                  {users.length === 0 && <p className="text-center">No users online</p>}
+                  {users.length === 0 && <p className="text-center">No users active</p>}
                 </ScrollArea>
               </CardContent>
             </Card>
