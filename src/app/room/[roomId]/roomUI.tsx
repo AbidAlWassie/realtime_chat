@@ -1,7 +1,7 @@
 // src/app/room/[roomId]/roomUI.tsx
 "use client";
 
-import { fetchMessages, storeMessage } from "@/actions/actions";
+import { fetchMessages, fetchRooms, storeMessage } from "@/actions/actions";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,6 +36,7 @@ export default function RoomUI({ roomId }: RoomUIProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [message, setMessage] = useState("");
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
+  const [roomName, setRoomName] = useState("Loading...");
   const messageEndRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef<Socket | null>(null);
   const prevMessageCount = useRef(messages.length);
@@ -84,6 +85,12 @@ export default function RoomUI({ roomId }: RoomUIProps) {
 
   useEffect(() => {
     loadMessages();
+    fetchRooms().then(rooms => {
+      const room = rooms.find(r => r.id === roomId);
+      if (room) {
+        setRoomName(room.name || "Unknown Room");
+      }
+    });
 
     if (!socketRef.current) {
       socketRef.current = io(serverAddress, { transports: ["websocket"] });
@@ -138,7 +145,7 @@ export default function RoomUI({ roomId }: RoomUIProps) {
             <AvatarFallback>RA</AvatarFallback>
           </Avatar>
           <div>
-            <h1 className="text-lg font-semibold">Room Name</h1>
+            <h1 className="text-lg font-semibold">{roomName}</h1>
             <p className="text-sm text-gray-400">
               {typingUsers.length > 0
                 ? `${typingUsers.join(", ")} ${typingUsers.length === 1 ? "is" : "are"} typing...`
