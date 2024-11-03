@@ -25,7 +25,7 @@ interface Message {
   room: string;
 }
 
-const serverAddress = process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "http://localhost:3001";
+const serverAddress = "http://localhost:3001";
 
 interface RoomUIProps {
   roomId: string;
@@ -131,7 +131,7 @@ export default function RoomUI({ roomId }: RoomUIProps) {
   }, [messages]);
 
   return (
-    <div className="flex flex-col h-screen bg-gray-900 text-white">
+    <div className="flex flex-col h-screen min-h-[100svh] bg-gray-900 text-white"> {/* using svh to test how it appears on mobile devices */}
       <header className="flex items-center justify-between p-4 border-b border-gray-700">
         <div className="flex items-center space-x-4">
           <Link href="/" passHref>
@@ -141,11 +141,11 @@ export default function RoomUI({ roomId }: RoomUIProps) {
             </Button>
           </Link>
           <Avatar>
-            <AvatarImage src="/placeholder-avatar.jpg" alt="Room Avatar" />
+            <AvatarImage src="" alt="Room Avatar" />
             <AvatarFallback>RA</AvatarFallback>
           </Avatar>
           <div>
-            <h1 className="text-lg font-semibold">{roomName}</h1>
+            <h1 className="text-lg font-semibold truncate-10 w-32 overflow-hidden text-ellipsis whitespace-nowrap">{roomName}</h1>
             <p className="text-sm text-gray-400">
               {typingUsers.length > 0
                 ? `${typingUsers.join(", ")} ${typingUsers.length === 1 ? "is" : "are"} typing...`

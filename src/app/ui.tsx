@@ -78,7 +78,7 @@ export default function Home() {
                     <Link href={`/room/${room.id}`} key={room.id}>
                       <div className="flex items-center space-x-4 mb-4 p-4 hover:bg-slate-700 rounded-lg cursor-pointer">
                         <Avatar className="">
-                          <AvatarImage src={`/placeholder.svg?height=40&width=40`} alt={room.name} />
+                          <AvatarImage src={``} alt={room.name} />
                           <AvatarFallback className="bg-gray-600">{room.name.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div>
@@ -111,7 +111,7 @@ export default function Home() {
                       className="flex items-center space-x-4 mb-4 p-4 hover:bg-slate-700 rounded-lg cursor-pointer"
                     >
                       <Avatar>
-                        <AvatarImage src={user.image ?? `/placeholder.svg?height=40&width=40`} alt={user.name || 'User'} />
+                        <AvatarImage src={user.image ?? ``} alt={user.name || 'User'} />
                         <AvatarFallback className="bg-gray-600">{user.name?.charAt(0) || 'U'}</AvatarFallback>
                       </Avatar>
                       <div>

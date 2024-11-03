@@ -85,3 +85,18 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+@layer components {
+  .truncate-10 {
+    display: inline-block;
+    /* Allows the text to be treated like a block */
+    max-width: calc(1ch * 10);
+    /* Limits the width to 10 characters */
+    overflow: hidden;
+    /* Hides overflow text */
+    text-overflow: ellipsis;
+    /* Adds ellipsis for overflow text */
+    white-space: nowrap;
+    /* Prevents text from wrapping */
+  }
+}
