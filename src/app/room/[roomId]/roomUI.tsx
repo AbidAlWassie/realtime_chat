@@ -1,5 +1,3 @@
-// src/app/room/[roomId]/RoomUI.tsx
-
 "use client";
 
 import { fetchMessages, storeMessage } from "@/actions/actions";
@@ -25,16 +23,17 @@ export default function RoomUI({ roomId }: RoomUIProps) {
   const { data: session } = useSession();
   const [messages, setMessages] = useState<Message[]>([]);
   const [message, setMessage] = useState("");
+  const [typingUsers, setTypingUsers] = useState<string[]>([]);
   const messageEndRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef<Socket | null>(null);
-  const prevMessageCount = useRef(messages.length); // Ref to track previous message count
+  const prevMessageCount = useRef(messages.length);
 
   const loadMessages = async () => {
     const initialMessages = await fetchMessages(roomId);
     const formattedMessages = initialMessages.map(msg => ({
       ...msg,
       senderId: msg.senderName || "unknown",
-      senderName: msg.senderName === session?.user?.name ? "You" : (msg.senderName || "unknown"), // using to format the sender name
+      senderName: msg.senderName === session?.user?.name ? "You" : (msg.senderName || "unknown"),
       room: roomId,
     }));
     setMessages(formattedMessages);
@@ -52,13 +51,10 @@ export default function RoomUI({ roomId }: RoomUIProps) {
         room: roomId,
       };
 
-      // Send message to the server
       socketRef.current.emit("send_message", newMessage);
 
-      // Save the message to the database
       const savedMessage = await storeMessage(message, senderId, senderName, roomId);
 
-      // Map savedMessage to the Message interface
       const formattedMessage: Message = {
         id: savedMessage.id,
         content: savedMessage.content,
@@ -67,9 +63,11 @@ export default function RoomUI({ roomId }: RoomUIProps) {
         room: roomId,
       };
 
-      // Add message to local state
       setMessages(prev => [...prev, formattedMessage]);
       setMessage("");
+      
+      // Clear typing status after sending a message
+      socketRef.current.emit("typing", { room: roomId, user: session?.user?.name, isTyping: false });
     }
   };
 
@@ -90,20 +88,27 @@ export default function RoomUI({ roomId }: RoomUIProps) {
       }
     });
 
+    socket.on("user_typing", (data: { user: string; isTyping: boolean }) => {
+      setTypingUsers(prev => 
+        data.isTyping
+          ? Array.from(new Set([...prev, data.user]))
+          : prev.filter(user => user !== data.user)
+      );
+    });
+
     return () => {
       socket.off("receive_message");
+      socket.off("user_typing");
       socket.disconnect();
       socketRef.current = null;
     };
   }, [roomId, session]);
 
   useEffect(() => {
-    // Scroll only if new messages were added
     if (messages.length > prevMessageCount.current) {
       messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
     
-    // Update previous message count after each render
     prevMessageCount.current = messages.length;
   }, [messages]);
 
@@ -129,10 +134,19 @@ export default function RoomUI({ roomId }: RoomUIProps) {
           <div ref={messageEndRef} />
         </div>
 
+        {typingUsers.length > 0 && (
+          <div className="text-sm text-gray-400 mt-2">
+            {typingUsers.join(", ")} {typingUsers.length === 1 ? "is" : "are"} typing...
+          </div>
+        )}
+
         <input
           placeholder="Type a message..."
           value={message}
-          onChange={(e) => setMessage(e.target.value)}
+          onChange={(e) => {
+            setMessage(e.target.value);
+            socketRef.current?.emit("typing", { room: roomId, user: session?.user?.name, isTyping: e.target.value.length > 0 });
+          }}
           className="bg-slate-700 border-slate-600 text-white w-full p-2 rounded mt-4"
           onKeyDown={(e) => e.key === "Enter" && sendMessage()}
         />
