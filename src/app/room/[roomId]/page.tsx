@@ -16,15 +16,15 @@ export default async function RoomPage({ params }: RoomPageProps) {
 
   if (!room) {
     return (
-      <div className="p-6 bg-gray-900 min-h-screen text-white">
+      <div className="bg-gray-900 min-h-screen text-white">
         <h1 className="text-2xl font-bold mb-4">Room not found</h1>
       </div>
     );
   }
 
   return (
-    <div className="p-6 bg-gray-900 min-h-screen text-white">
-      <h1 className="text-2xl font-bold mb-4">Room: {roomId}</h1>
+    <div className="bg-gray-900 min-h-screen text-white">
+      {/* <h1 className="text-2xl font-bold mb-4">Room: {roomId}</h1> */}
       <SessionProvider>
         <RoomUI roomId={roomId} />
       </SessionProvider>

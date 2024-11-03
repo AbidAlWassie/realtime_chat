@@ -1,7 +1,19 @@
+// src/app/room/[roomId]/roomUI.tsx
 "use client";
 
 import { fetchMessages, storeMessage } from "@/actions/actions";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { ArrowLeft, MoreVertical, Phone, Send, Video } from "lucide-react";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import io, { Socket } from "socket.io-client";
 
@@ -66,7 +78,6 @@ export default function RoomUI({ roomId }: RoomUIProps) {
       setMessages(prev => [...prev, formattedMessage]);
       setMessage("");
       
-      // Clear typing status after sending a message
       socketRef.current.emit("typing", { room: roomId, user: session?.user?.name, isTyping: false });
     }
   };
@@ -113,50 +124,95 @@ export default function RoomUI({ roomId }: RoomUIProps) {
   }, [messages]);
 
   return (
-    <div className="space-y-4">
-      <div className="mt-6">
-        <h2 className="text-lg font-semibold mb-2">Messages:</h2>
-        <div id="MsgContainer" className="p-3 bg-slate-700 rounded-lg min-h-[150px] max-h-[80%] overflow-y-auto space-y-2">
-          {messages.length ? (
-            messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={`p-2 rounded-lg ${
-                  msg.senderName === "You" ? "bg-blue-600 text-right ml-auto" : "bg-gray-500 text-left"
-                } max-w-[80%]`}
-              >
-                <span className="font-bold">{msg.senderName}:</span> {msg.content}
-              </div>
-            ))
-          ) : (
-            <p className="text-center">No messages yet</p>
-          )}
-          <div ref={messageEndRef} />
-        </div>
-
-        {typingUsers.length > 0 && (
-          <div className="text-sm text-gray-400 mt-2">
-            {typingUsers.join(", ")} {typingUsers.length === 1 ? "is" : "are"} typing...
+    <div className="flex flex-col h-screen bg-gray-900 text-white">
+      <header className="flex items-center justify-between p-4 border-b border-gray-700">
+        <div className="flex items-center space-x-4">
+          <Link href="/" passHref>
+            <Button variant="ghost" size="icon" className="text-blue-400 hover:text-blue-300">
+              <ArrowLeft className="h-6 w-6" />
+              <span className="sr-only">Back to Rooms</span>
+            </Button>
+          </Link>
+          <Avatar>
+            <AvatarImage src="/placeholder-avatar.jpg" alt="Room Avatar" />
+            <AvatarFallback>RA</AvatarFallback>
+          </Avatar>
+          <div>
+            <h1 className="text-lg font-semibold">Room Name</h1>
+            <p className="text-sm text-gray-400">
+              {typingUsers.length > 0
+                ? `${typingUsers.join(", ")} ${typingUsers.length === 1 ? "is" : "are"} typing...`
+                : "No one is typing"}
+            </p>
           </div>
-        )}
-
-        <input
-          placeholder="Type a message..."
-          value={message}
-          onChange={(e) => {
-            setMessage(e.target.value);
-            socketRef.current?.emit("typing", { room: roomId, user: session?.user?.name, isTyping: e.target.value.length > 0 });
+        </div>
+        <div className="flex items-center space-x-2">
+          <Button variant="ghost" size="icon" className="text-blue-400 hover:text-blue-300">
+            <Phone className="h-5 w-5" />
+            <span className="sr-only">Call</span>
+          </Button>
+          <Button variant="ghost" size="icon" className="text-blue-400 hover:text-blue-300">
+            <Video className="h-5 w-5" />
+            <span className="sr-only">Video Call</span>
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="text-blue-400 hover:text-blue-300">
+                <MoreVertical className="h-5 w-5" />
+                <span className="sr-only">More options</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-gray-800 border-gray-700">
+              <DropdownMenuItem className="text-gray-200 focus:bg-gray-700">Edit Room</DropdownMenuItem>
+              <DropdownMenuItem className="text-gray-200 focus:bg-gray-700">Mute Notifications</DropdownMenuItem>
+              <DropdownMenuItem className="text-gray-200 focus:bg-gray-700">Block Room</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </header>
+      <main className="flex-1 overflow-y-auto p-4 space-y-4">
+        {messages.map((msg) => (
+          <div
+            key={msg.id}
+            className={`flex ${msg.senderName === "You" ? "justify-end" : "justify-start"}`}
+          >
+            <div
+              className={`p-3 rounded-lg max-w-[70%] min-w-[80px] ${
+                msg.senderName === "You" 
+                  ? "bg-blue-600 text-white " 
+                  : "bg-gray-700 text-gray-200"
+              }`}
+            >
+              <p className="font-semibold">{msg.senderName}</p>
+              <p>{msg.content}</p>
+            </div>
+          </div>
+        ))}
+        <div ref={messageEndRef} />
+      </main>
+      <footer className="p-4 border-t border-gray-700">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            sendMessage();
           }}
-          className="bg-slate-700 border-slate-600 text-white w-full p-2 rounded mt-4"
-          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-        />
-        <button
-          onClick={sendMessage}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded mt-2"
+          className="flex space-x-2"
         >
-          Send Message
-        </button>
-      </div>
+          <Input
+            placeholder="Type a message..."
+            value={message}
+            onChange={(e) => {
+              setMessage(e.target.value);
+              socketRef.current?.emit("typing", { room: roomId, user: session?.user?.name, isTyping: e.target.value.length > 0 });
+            }}
+            className="flex-1 bg-gray-800 border-gray-700 text-white placeholder-gray-400"
+          />
+          <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">
+            <Send className="h-5 w-5 mr-2" />
+            Send
+          </Button>
+        </form>
+      </footer>
     </div>
   );
 }

@@ -1,3 +1,4 @@
+// src/app/ui.tsx
 'use client'
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
