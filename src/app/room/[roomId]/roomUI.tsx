@@ -1,4 +1,3 @@
-// src/app/room/[roomId]/roomUI.tsx
 "use client";
 
 import { fetchMessages, fetchRooms, storeMessage } from "@/actions/actions";
@@ -23,6 +22,7 @@ interface Message {
   senderId: string;
   senderName: string;
   room: string;
+  createdAt: string;
 }
 
 const serverAddress = process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "http://localhost:3001";
@@ -38,6 +38,7 @@ export default function RoomUI({ roomId }: RoomUIProps) {
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
   const [roomName, setRoomName] = useState("Loading...");
   const messageEndRef = useRef<HTMLDivElement>(null);
+  const [activeUsers, setActiveUsers] = useState<string[]>([]);
   const socketRef = useRef<Socket | null>(null);
   const prevMessageCount = useRef(messages.length);
 
@@ -48,6 +49,7 @@ export default function RoomUI({ roomId }: RoomUIProps) {
       senderId: msg.senderName || "unknown",
       senderName: msg.senderId === session?.user?.id ? "You" : (msg.senderName || "unknown"),
       room: roomId,
+      createdAt: new Date(msg.createdAt).toISOString(),
     }));
     setMessages(formattedMessages);
   };
@@ -62,6 +64,7 @@ export default function RoomUI({ roomId }: RoomUIProps) {
         senderId,
         senderName,
         room: roomId,
+        createdAt: new Date().toISOString(),
       };
 
       socketRef.current.emit("send_message", newMessage);
@@ -74,6 +77,7 @@ export default function RoomUI({ roomId }: RoomUIProps) {
         senderId: savedMessage.userId,
         senderName: "You",
         room: roomId,
+        createdAt: new Date().toISOString(),
       };
 
       setMessages(prev => [...prev, formattedMessage]);
@@ -100,6 +104,13 @@ export default function RoomUI({ roomId }: RoomUIProps) {
     const socket = socketRef.current;
 
     socket.emit("join_room", roomId);
+    setActiveUsers(prev => Array.from(new Set([...prev, session?.user?.name || 'Anonymous'])));
+    socket.on("receive_message", (data: Message) => {
+      if (data.senderName !== session?.user?.name) {
+        setMessages(prev => [...prev, data]);
+      }
+    });
+
     socket.on("receive_message", (data: Message) => {
       if (data.senderName !== session?.user?.name) {
         setMessages(prev => [...prev, data]);
@@ -114,10 +125,21 @@ export default function RoomUI({ roomId }: RoomUIProps) {
       );
     });
 
+    socket.on("user_joined", (data: { user: string }) => {
+      setActiveUsers(prev => Array.from(new Set([...prev, data.user])));
+    });
+
+    socket.on("user_left", (data: { user: string }) => {
+      setActiveUsers(prev => prev.filter(user => user !== data.user));
+    });
+
     return () => {
       socket.off("receive_message");
       socket.off("user_typing");
+      socket.off("user_joined");
+      socket.off("user_left");
       socket.disconnect();
+      setActiveUsers(prev => prev.filter(user => user !== session?.user?.name));
       socketRef.current = null;
     };
   }, [roomId, session]);
@@ -130,8 +152,57 @@ export default function RoomUI({ roomId }: RoomUIProps) {
     prevMessageCount.current = messages.length;
   }, [messages]);
 
+  const formatDate = (date: Date) => {
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+    if (days === 0) {
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } else if (days === 1) {
+      return 'Yesterday';
+    } else {
+      return date.toLocaleDateString();
+    }
+  };
+
+  const renderMessages = () => {
+    let lastDate: Date | null = null;
+    return messages.map((msg) => {
+      const messageDate = new Date(msg.createdAt);
+      let showTimestamp = false;
+
+      if (!lastDate || messageDate.getTime() - lastDate.getTime() >= 60 * 60 * 1000) {
+        showTimestamp = true;
+        lastDate = messageDate;
+      }
+
+      return (
+        <div key={msg.id}>
+          {showTimestamp && (
+            <div className="text-center text-sm text-gray-500 my-2">
+              {formatDate(messageDate)}
+            </div>
+          )}
+          <div className={`flex ${msg.senderName === "You" ? "justify-end" : "justify-start"}`}>
+            <div
+              className={`p-3 rounded-lg max-w-[70%] min-w-[80px] ${
+                msg.senderName === "You" 
+                  ? "bg-blue-600 text-white" 
+                  : "bg-gray-700 text-gray-200"
+              }`}
+            >
+              <p className="font-semibold">{msg.senderName}</p>
+              <p>{msg.content}</p>
+            </div>
+          </div>
+        </div>
+      );
+    });
+  };
+
   return (
-    <div className="flex flex-col h-screen min-h-[100svh] bg-gray-900 text-white"> {/* using svh to test how it appears on mobile devices */}
+    <div className="flex flex-col h-screen min-h-[100svh] bg-gray-900 text-white">
       <header className="flex items-center justify-between p-4 border-b border-gray-700">
         <div className="flex items-center space-x-4">
           <Link href="/" passHref>
@@ -144,12 +215,10 @@ export default function RoomUI({ roomId }: RoomUIProps) {
             <AvatarImage src="" alt="Room Avatar" />
             <AvatarFallback>RA</AvatarFallback>
           </Avatar>
-          <div>
+          <div className="flex flex-col">
             <h1 className="text-lg font-semibold truncate-10 w-32 overflow-hidden text-ellipsis whitespace-nowrap">{roomName}</h1>
-            <p className="text-sm text-gray-400">
-              {typingUsers.length > 0
-                ? `${typingUsers.join(", ")} ${typingUsers.length === 1 ? "is" : "are"} typing...`
-                : "No one is typing"}
+            <p className="text-sm text-gray-400 truncate-10 w-32 overflow-hidden text-ellipsis whitespace-nowrap">
+              {activeUsers.length} user{activeUsers.length !== 1 ? 's' : ''} active
             </p>
           </div>
         </div>
@@ -178,24 +247,13 @@ export default function RoomUI({ roomId }: RoomUIProps) {
         </div>
       </header>
       <main className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((msg) => (
-          <div
-            key={msg.id}
-            className={`flex ${msg.senderName === "You" ? "justify-end" : "justify-start"}`}
-          >
-            <div
-              className={`p-3 rounded-lg max-w-[70%] min-w-[80px] ${
-                msg.senderName === "You" 
-                  ? "bg-blue-600 text-white " 
-                  : "bg-gray-700 text-gray-200"
-              }`}
-            >
-              <p className="font-semibold">{msg.senderName}</p>
-              <p>{msg.content}</p>
-            </div>
-          </div>
-        ))}
+        {renderMessages()}
         <div ref={messageEndRef} />
+        {typingUsers.length > 0 && (
+          <div className="text-sm bg-gray-800 text-gray-200 p-2 w-64 max-w-80">
+            <span className="font-semibold text-blue-300">{typingUsers.join(", ")}</span> {typingUsers.length === 1 ? "is" : "are"} typing...
+          </div>
+        )}
       </main>
       <footer className="p-4 border-t border-gray-700">
         <form
