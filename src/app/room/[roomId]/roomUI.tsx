@@ -105,12 +105,7 @@ export default function RoomUI({ roomId }: RoomUIProps) {
 
     socket.emit("join_room", roomId);
     setActiveUsers(prev => Array.from(new Set([...prev, session?.user?.name || 'Anonymous'])));
-    socket.on("receive_message", (data: Message) => {
-      if (data.senderName !== session?.user?.name) {
-        setMessages(prev => [...prev, data]);
-      }
-    });
-
+    
     socket.on("receive_message", (data: Message) => {
       if (data.senderName !== session?.user?.name) {
         setMessages(prev => [...prev, data]);
