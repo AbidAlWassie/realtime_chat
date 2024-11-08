@@ -26,6 +26,7 @@ export async function fetchRooms() {
       id: true,
       name: true,
       description: true,
+      adminId: true,
     },
     orderBy: {
       createdAt: "desc",
@@ -39,7 +40,7 @@ export async function fetchRooms() {
   return rooms;
 }
 
-export async function createRoom(roomName: string, description: string) {
+export async function createRoom(roomName: string, description: string, adminId: string) {
   if (!roomName || roomName.trim() === '') {
     throw new Error("Room name is required and cannot be empty.");
   }
@@ -49,6 +50,7 @@ export async function createRoom(roomName: string, description: string) {
       name: roomName.trim(),
       description: description ? description.trim() : null,
       image: null,
+      adminId,
     },
   });
 
@@ -93,9 +95,7 @@ export async function deleteRoom(roomId: string) {
 
   try {
     await prisma.room.delete({
-      where: {
-        id: roomId,
-      },
+      where: { id: roomId },
     });
 
     revalidateTag('rooms');
@@ -104,7 +104,7 @@ export async function deleteRoom(roomId: string) {
     return { success: true };
   } catch (error) {
     console.error('Failed to delete room:', error);
-    return { success: false, error: 'Failed to delete room. Please try again.' };
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to delete room. Please try again.' };
   }
 }
 

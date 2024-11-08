@@ -1,6 +1,8 @@
 // src/components/layouts/CreateRoom.tsx
 "use client"
 
+"use client"
+
 import { createRoom } from "@/actions/actions"
 import { Button } from "@/components/ui/button"
 import {
@@ -13,6 +15,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 
@@ -23,11 +26,18 @@ export default function CreateRoom() {
   const [error, setError] = useState<string | null>(null)
   const [open, setOpen] = useState(false)
   const router = useRouter()
+  const { data: session } = useSession()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
     setError(null)
+
+    if (!session?.user?.id) {
+      setError("You must be logged in to create a room.")
+      setIsSubmitting(false)
+      return
+    }
 
     if (roomName.trim().length < 3) {
       setError("Room name must be at least 3 characters long.")
@@ -36,7 +46,11 @@ export default function CreateRoom() {
     }
 
     try {
-      const newRoom = await createRoom(roomName, roomDescription)
+      const newRoom = await createRoom(
+        roomName,
+        roomDescription,
+        session.user.id
+      )
       setRoomName("")
       setRoomDescription("")
       setOpen(false)
@@ -85,7 +99,7 @@ export default function CreateRoom() {
             <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" disabled={isSubmitting || !session?.user}>
               {isSubmitting ? "Creating..." : "Create Room"}
             </Button>
           </div>

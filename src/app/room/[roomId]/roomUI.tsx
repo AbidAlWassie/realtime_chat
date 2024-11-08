@@ -1,3 +1,4 @@
+// src/app/room/[roomId]/roomUI.tsx
 "use client";
 
 import { deleteRoom, editRoom, fetchMessages, fetchRooms, storeMessage } from "@/actions/actions";
@@ -13,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { ArrowLeft, MoreVertical, Phone, Send, Video } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import io, { Socket } from "socket.io-client";
 import EditRoomDialog from "./editRoom";
@@ -39,8 +41,10 @@ export default function RoomUI({ roomId }: RoomUIProps) {
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
   const [roomName, setRoomName] = useState("Loading...");
   const messageEndRef = useRef<HTMLDivElement>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [roomDescription, setRoomDescription] = useState("");
   const [activeUsers, setActiveUsers] = useState<string[]>([]);
+  const router = useRouter();
   const socketRef = useRef<Socket | null>(null);
   const prevMessageCount = useRef(messages.length);
 
@@ -92,9 +96,15 @@ export default function RoomUI({ roomId }: RoomUIProps) {
   useEffect(() => {
     loadMessages();
     fetchRooms().then(rooms => {
-      const room = rooms.find(r => r.id === roomId);
+      const room = rooms.find(r => r.id === roomId) as { id: string; name: string; description: string; adminId: string } | undefined;
       if (room) {
         setRoomName(room.name || "Unknown Room");
+        setIsAdmin(room.adminId === session?.user?.id);
+        console.log("Room admin:", room.adminId, "User ID:", session?.user?.id);
+        if (session?.user?.id) {
+          setRoomName(room.name || "Unknown Room");
+          setRoomDescription(room.description || "");
+        }
       }
     });
 
@@ -199,24 +209,28 @@ export default function RoomUI({ roomId }: RoomUIProps) {
   };
 
   const handleUpdateRoom = async (name: string, description: string) => {
-    const result = await editRoom(roomId, name, description)
+    const result = await editRoom(roomId, name, description);
     if (result.success) {
-      setRoomName(name)
-      setRoomDescription(description)
+      setRoomName(name);
+      setRoomDescription(description);
     } else {
-      console.error("Failed to update room:", result.error)
+      console.error("Failed to update room:", result.error);
     }
-  }
+  };
 
-  const handleDeleteRoom = async (roomId: string) => {
-    const result = await deleteRoom(roomId)
-    if (result.success) {
-      console.log("Room deleted successfully")
-    } else {
-      console.error("Failed to delete room:", result.error)
+  const handleDeleteRoom = async () => {
+    try {
+      const result = await deleteRoom(roomId);
+      if (result.success) {
+        console.log("Room deleted successfully");
+        router.push('/'); // Redirect to home page after deletion
+      } else {
+        console.error("Failed to delete room:", result.error);
+      }
+    } catch (error) {
+      console.error("Error deleting room:", error);
     }
-  }
-
+  };
 
   return (
     <div className="flex flex-col h-screen min-h-[100svh] bg-gray-900 text-white">
@@ -248,6 +262,7 @@ export default function RoomUI({ roomId }: RoomUIProps) {
             <Video className="h-5 w-5" />
             <span className="sr-only">Video Call</span>
           </Button>
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="text-blue-400 hover:text-blue-300">
@@ -256,20 +271,21 @@ export default function RoomUI({ roomId }: RoomUIProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="bg-gray-800 border-gray-700">
-              <DropdownMenuItem asChild>
-                <EditRoomDialog
-                  roomId={roomId}
-                  initialName={roomName}
-                  initialDescription={roomDescription}
-                  onUpdate={handleUpdateRoom}
-                  onDelete={() => handleDeleteRoom(roomId)}
-                />
-              </DropdownMenuItem>
+              {isAdmin && (
+                <DropdownMenuItem>
+                  <EditRoomDialog
+                    roomId={roomId}
+                    initialName={roomName}
+                    initialDescription={roomDescription}
+                    onUpdate={handleUpdateRoom}
+                    onDelete={handleDeleteRoom}
+                  />
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem className="text-gray-200 focus:bg-gray-700">Mute Notifications</DropdownMenuItem>
               <DropdownMenuItem className="text-gray-200 focus:bg-gray-700">Block Room</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          
         </div>
       </header>
       <main className="flex-1 overflow-y-auto p-4 space-y-4">
