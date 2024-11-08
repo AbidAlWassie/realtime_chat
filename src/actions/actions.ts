@@ -1,11 +1,10 @@
 "use server";
 
 import prisma from "@/lib/db";
-import { revalidateTag } from "next/cache";
-
+import { revalidatePath, revalidateTag } from "next/cache";
 
 export async function fetchUsers() {
-  const user = await prisma.user.findMany({
+  const users = await prisma.user.findMany({
     select: {
       id: true,
       email: true,
@@ -14,15 +13,15 @@ export async function fetchUsers() {
     },
   });
 
-  if (!user) {
-    throw new Error("Users not found.");
+  if (!users) {
+    throw new Error("No users found.");
   }
 
-  return user;
+  return users;
 }
 
 export async function fetchRooms() {
-  const roomName = await prisma.room.findMany({
+  const rooms = await prisma.room.findMany({
     select: {
       id: true,
       name: true,
@@ -33,28 +32,80 @@ export async function fetchRooms() {
     }
   });
 
-  if (!roomName) {
-    throw new Error("Room not found.");
+  if (!rooms) {
+    throw new Error("No rooms found.");
   }
 
-  return roomName;
+  return rooms;
 }
 
-
 export async function createRoom(roomName: string, description: string) {
-  if (!roomName) {
-    throw new Error("Room name is required.");
+  if (!roomName || roomName.trim() === '') {
+    throw new Error("Room name is required and cannot be empty.");
   }
 
   const room = await prisma.room.create({
     data: {
-      name: roomName,
-      description: description,
+      name: roomName.trim(),
+      description: description ? description.trim() : null,
       image: null,
     },
   });
 
+  revalidateTag('rooms');
   return room;
+}
+
+export async function editRoom(roomId: string, name: string, description: string) {
+  if (!roomId) {
+    throw new Error("Room ID is required.");
+  }
+
+  if (!name || name.trim() === '') {
+    throw new Error("Room name is required and cannot be empty.");
+  }
+
+  try {
+    const updatedRoom = await prisma.room.update({
+      where: {
+        id: roomId,
+      },
+      data: {
+        name: name.trim(),
+        description: description ? description.trim() : null,
+      },
+    });
+
+    revalidateTag('rooms');
+    revalidatePath(`/rooms/${roomId}`);
+
+    return { success: true, room: updatedRoom };
+  } catch (error) {
+    console.error('Failed to update room:', error);
+    return { success: false, error: 'Failed to update room. Please try again.' };
+  }
+}
+
+export async function deleteRoom(roomId: string) {
+  if (!roomId) {
+    throw new Error("Room ID is required.");
+  }
+
+  try {
+    await prisma.room.delete({
+      where: {
+        id: roomId,
+      },
+    });
+
+    revalidateTag('rooms');
+    revalidatePath('/');
+
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to delete room:', error);
+    return { success: false, error: 'Failed to delete room. Please try again.' };
+  }
 }
 
 export async function storeMessage(
@@ -80,20 +131,16 @@ export async function storeMessage(
 
   const savedMessage = await prisma.message.create({
     data: {
-      content: message,
+      content: message.trim(),
       userId: user.id,
       roomId,
     },
   });
 
-  // Trigger revalidation only once per message sent
   revalidateTag(`room-messages-${roomId}`);
 
   return savedMessage;
 }
-
-
-// create another server action to fetch & revalidate every time a new message gets sent
 
 export async function fetchMessages(roomId: string) {
   if (!roomId) {
@@ -105,9 +152,8 @@ export async function fetchMessages(roomId: string) {
     include: {
       user: { select: { name: true, createdAt: true, id: true } }, // Include user name for each message
     },
-    orderBy: { createdAt: "asc" }, // Order messages by creation time
+    orderBy: { createdAt: "asc" },
   });
-
 
   return messages.map(message => ({
     id: message.id,

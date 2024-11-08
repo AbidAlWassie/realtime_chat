@@ -1,6 +1,6 @@
 "use client";
 
-import { fetchMessages, fetchRooms, storeMessage } from "@/actions/actions";
+import { deleteRoom, editRoom, fetchMessages, fetchRooms, storeMessage } from "@/actions/actions";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +15,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import io, { Socket } from "socket.io-client";
+import EditRoomDialog from "./editRoom";
 
 interface Message {
   id: string;
@@ -38,6 +39,7 @@ export default function RoomUI({ roomId }: RoomUIProps) {
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
   const [roomName, setRoomName] = useState("Loading...");
   const messageEndRef = useRef<HTMLDivElement>(null);
+  const [roomDescription, setRoomDescription] = useState("");
   const [activeUsers, setActiveUsers] = useState<string[]>([]);
   const socketRef = useRef<Socket | null>(null);
   const prevMessageCount = useRef(messages.length);
@@ -196,6 +198,26 @@ export default function RoomUI({ roomId }: RoomUIProps) {
     });
   };
 
+  const handleUpdateRoom = async (name: string, description: string) => {
+    const result = await editRoom(roomId, name, description)
+    if (result.success) {
+      setRoomName(name)
+      setRoomDescription(description)
+    } else {
+      console.error("Failed to update room:", result.error)
+    }
+  }
+
+  const handleDeleteRoom = async (roomId: string) => {
+    const result = await deleteRoom(roomId)
+    if (result.success) {
+      console.log("Room deleted successfully")
+    } else {
+      console.error("Failed to delete room:", result.error)
+    }
+  }
+
+
   return (
     <div className="flex flex-col h-screen min-h-[100svh] bg-gray-900 text-white">
       <header className="flex items-center justify-between p-4 border-b border-gray-700">
@@ -234,11 +256,20 @@ export default function RoomUI({ roomId }: RoomUIProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="bg-gray-800 border-gray-700">
-              <DropdownMenuItem className="text-gray-200 focus:bg-gray-700">Edit Room</DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <EditRoomDialog
+                  roomId={roomId}
+                  initialName={roomName}
+                  initialDescription={roomDescription}
+                  onUpdate={handleUpdateRoom}
+                  onDelete={() => handleDeleteRoom(roomId)}
+                />
+              </DropdownMenuItem>
               <DropdownMenuItem className="text-gray-200 focus:bg-gray-700">Mute Notifications</DropdownMenuItem>
               <DropdownMenuItem className="text-gray-200 focus:bg-gray-700">Block Room</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          
         </div>
       </header>
       <main className="flex-1 overflow-y-auto p-4 space-y-4">
