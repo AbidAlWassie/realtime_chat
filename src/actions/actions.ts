@@ -29,7 +29,7 @@ export async function fetchRooms() {
       description: true,
     },
     orderBy: {
-      createdAt: "asc"
+      createdAt: "desc",
     }
   });
 
