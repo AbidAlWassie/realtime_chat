@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { ArrowLeft, MoreVertical, Phone, Send, Video } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import io, { Socket } from "socket.io-client";
 import EditRoomDialog from "./editRoom";
 
@@ -44,7 +44,7 @@ export default function RoomUI({ roomId }: RoomUIProps) {
   const socketRef = useRef<Socket | null>(null);
   const prevMessageCount = useRef(messages.length);
 
-  const loadMessages = async () => {
+  const loadMessages = useCallback(async () => {
     const initialMessages = await fetchMessages(roomId);
     const formattedMessages = initialMessages.map(msg => ({
       ...msg,
@@ -54,7 +54,7 @@ export default function RoomUI({ roomId }: RoomUIProps) {
       createdAt: new Date(msg.createdAt).toISOString(),
     }));
     setMessages(formattedMessages);
-  };
+  }, [roomId, session?.user?.id]);
 
   const sendMessage = async () => {
     if (message.trim() && socketRef.current) {
@@ -139,7 +139,7 @@ export default function RoomUI({ roomId }: RoomUIProps) {
       setActiveUsers(prev => prev.filter(user => user !== session?.user?.name));
       socketRef.current = null;
     };
-  }, [roomId, session]);
+  }, [roomId, session, loadMessages]);
 
   useEffect(() => {
     if (messages.length > prevMessageCount.current) {
