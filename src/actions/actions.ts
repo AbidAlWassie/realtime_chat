@@ -28,6 +28,9 @@ export async function fetchRooms() {
       name: true,
       description: true,
     },
+    orderBy: {
+      createdAt: "asc"
+    }
   });
 
   if (!roomName) {
