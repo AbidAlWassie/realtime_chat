@@ -67,7 +67,7 @@ export default function EditRoomDialog({ initialName, initialDescription, onUpda
               <AlertDialogTrigger asChild>
                 <Button variant="destructive" className="bg-red-500 hover:bg-red-600">Delete Room</Button>
               </AlertDialogTrigger>
-              <AlertDialogContent>
+              <AlertDialogContent className="bg-gray-900 border-gray-700">
                 <AlertDialogHeader>
                   <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                   <AlertDialogDescription>
@@ -76,8 +76,8 @@ export default function EditRoomDialog({ initialName, initialDescription, onUpda
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={onDelete}>
+                  <AlertDialogCancel className="bg-blue-500 hover:bg-blue-600 border-none">Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={onDelete} className="bg-red-500 hover:bg-red-600">
                     Yes, delete room
                   </AlertDialogAction>
                 </AlertDialogFooter>

@@ -67,7 +67,7 @@ export default function CreateRoom() {
       <DialogTrigger asChild>
         <Button variant="default" className="bg-indigo-600 hover:bg-indigo-700">Create Room</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] bg-gray-900 border-gray-700">
         <DialogHeader>
           <DialogTitle>Create a New Room</DialogTitle>
           <DialogDescription>
@@ -83,6 +83,7 @@ export default function CreateRoom() {
               value={roomName}
               onChange={(e) => setRoomName(e.target.value)}
               required
+              className="col-span-3 border-gray-700 placeholder:italic placeholder:text-slate-400 "
             />
           </div>
           <div className="grid gap-2">
@@ -92,14 +93,15 @@ export default function CreateRoom() {
               placeholder="Enter room description"
               value={roomDescription}
               onChange={(e) => setRoomDescription(e.target.value)}
+              className="col-span-3 border-gray-700 placeholder:italic placeholder:text-slate-400"
             />
           </div>
           {error && <p className="text-sm text-red-500">{error}</p>}
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
+            <Button type="button" variant="secondary" onClick={() => setOpen(false)}  className="bg-slate-600 hover:bg-slate-700">
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting || !session?.user}>
+            <Button type="submit" disabled={isSubmitting || !session?.user} className="bg-blue-500 hover:bg-blue-600">
               {isSubmitting ? "Creating..." : "Create Room"}
             </Button>
           </div>

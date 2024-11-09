@@ -235,7 +235,7 @@ export default function RoomUI({ roomId }: RoomUIProps) {
           </Link>
           <Avatar>
             <AvatarImage src="" alt="Room Avatar" />
-            <AvatarFallback>RA</AvatarFallback>
+            <AvatarFallback className="bg-gray-600">{roomName.charAt(0)}</AvatarFallback>
           </Avatar>
           <div className="flex flex-col">
             <h1 className="text-lg font-semibold truncate-10 w-32 overflow-hidden text-ellipsis whitespace-nowrap">{roomName}</h1>
