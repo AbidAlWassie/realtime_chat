@@ -28,7 +28,7 @@ interface Message {
   createdAt: string;
 }
 
-const serverAddress = process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || "http://localhost:3001";
+const serverAddress = process.env.NEXT_PUBLIC_SOCKET_SERVER_URL;
 
 interface RoomUIProps {
   roomId: string;
@@ -39,11 +39,11 @@ export default function RoomUI({ roomId }: RoomUIProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [message, setMessage] = useState("");
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
-  const [roomName, setRoomName] = useState("Loading...");
   const messageEndRef = useRef<HTMLDivElement>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [roomDescription, setRoomDescription] = useState("");
   const [activeUsers, setActiveUsers] = useState<string[]>([]);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [roomName, setRoomName] = useState("Loading...");
+  const [roomDescription, setRoomDescription] = useState("");
   const router = useRouter();
   const socketRef = useRef<Socket | null>(null);
   const prevMessageCount = useRef(messages.length);
@@ -64,7 +64,6 @@ export default function RoomUI({ roomId }: RoomUIProps) {
     if (message.trim() && socketRef.current) {
       const senderId = session?.user?.email || "anonymous";
       const senderName = session?.user?.name || "Anonymous";
-
       const newMessage = {
         content: message,
         senderId,
@@ -72,11 +71,8 @@ export default function RoomUI({ roomId }: RoomUIProps) {
         room: roomId,
         createdAt: new Date().toISOString(),
       };
-
       socketRef.current.emit("send_message", newMessage);
-
       const savedMessage = await storeMessage(message, senderId, senderName, roomId);
-
       const formattedMessage: Message = {
         id: savedMessage.id,
         content: savedMessage.content,
@@ -85,10 +81,8 @@ export default function RoomUI({ roomId }: RoomUIProps) {
         room: roomId,
         createdAt: new Date().toISOString(),
       };
-
       setMessages(prev => [...prev, formattedMessage]);
       setMessage("");
-      
       socketRef.current.emit("typing", { room: roomId, user: session?.user?.name, isTyping: false });
     }
   };
@@ -100,11 +94,8 @@ export default function RoomUI({ roomId }: RoomUIProps) {
       if (room) {
         setRoomName(room.name || "Unknown Room");
         setIsAdmin(room.adminId === session?.user?.id);
-        console.log("Room admin:", room.adminId, "User ID:", session?.user?.id);
-        if (session?.user?.id) {
-          setRoomName(room.name || "Unknown Room");
-          setRoomDescription(room.description || "");
-        }
+        setRoomDescription(room.description || "");
+        console.log("adminId ", room.adminId, "session ", session?.user?.id);
       }
     });
 
@@ -272,7 +263,7 @@ export default function RoomUI({ roomId }: RoomUIProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="bg-gray-800 border-gray-700">
               {isAdmin && (
-                <DropdownMenuItem>
+                <DropdownMenuItem asChild>
                   <EditRoomDialog
                     roomId={roomId}
                     initialName={roomName}
@@ -286,6 +277,7 @@ export default function RoomUI({ roomId }: RoomUIProps) {
               <DropdownMenuItem className="text-gray-200 focus:bg-gray-700">Block Room</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+
         </div>
       </header>
       <main className="flex-1 overflow-y-auto p-4 space-y-4">
