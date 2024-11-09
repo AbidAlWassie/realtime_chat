@@ -95,7 +95,6 @@ export default function RoomUI({ roomId }: RoomUIProps) {
         setRoomName(room.name || "Unknown Room");
         setIsAdmin(room.adminId === session?.user?.id);
         setRoomDescription(room.description || "");
-        console.log("adminId ", room.adminId, "session ", session?.user?.id);
       }
     });
 
@@ -214,7 +213,7 @@ export default function RoomUI({ roomId }: RoomUIProps) {
       const result = await deleteRoom(roomId);
       if (result.success) {
         console.log("Room deleted successfully");
-        router.push('/'); // Redirect to home page after deletion
+        router.push('/');
       } else {
         console.error("Failed to delete room:", result.error);
       }
