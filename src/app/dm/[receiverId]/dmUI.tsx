@@ -29,8 +29,8 @@ export default function DMUI({ receiverId, receiverName, receiverImage }: DMUIPr
   const { data: session } = useSession()
   const [messages, setMessages] = useState<Message[]>([])
   const [message, setMessage] = useState("")
-  const [isTyping, setIsTyping] = useState(false)
   const messageEndRef = useRef<HTMLDivElement>(null)
+  const [isTyping, setIsTyping] = useState(false)
   const socketRef = useRef<Socket | null>(null)
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -75,11 +75,9 @@ export default function DMUI({ receiverId, receiverName, receiverImage }: DMUIPr
 
   const handleTyping = () => {
     if (socketRef.current && session?.user?.id) {
-      const room = [session.user.id, receiverId].sort().join("-");
       socketRef.current.emit("typing", { 
         senderId: session.user.id, 
-        receiverId,
-        room 
+        receiverId
       });
       
       if (typingTimeoutRef.current) {
@@ -89,12 +87,12 @@ export default function DMUI({ receiverId, receiverName, receiverImage }: DMUIPr
       typingTimeoutRef.current = setTimeout(() => {
         socketRef.current?.emit("stop_typing", { 
           senderId: session.user.id, 
-          receiverId,
-          room 
+          receiverId
         });
       }, 1000)
     }
   }
+
 
   useEffect(() => {
     loadMessages()
@@ -112,9 +110,9 @@ export default function DMUI({ receiverId, receiverName, receiverImage }: DMUIPr
       }
     })
 
-    socket.on("user_typing", ({ senderId }) => {
+    socket.on("user_typing", ({ senderId, isTyping }) => {
       if (senderId === receiverId) {
-        setIsTyping(true)
+        setIsTyping(isTyping)
       }
     })
 
@@ -216,6 +214,10 @@ export default function DMUI({ receiverId, receiverName, receiverImage }: DMUIPr
       <main className="flex-1 overflow-y-auto p-4 space-y-4">
         {renderMessages()}
         <div ref={messageEndRef} />
+        {isTyping ? 
+        <div className="text-sm bg-gray-800 text-gray-200 p-2 w-64 max-w-80">
+          <span className="font-semibold text-blue-300">{receiverName}</span> is typing...
+        </div> : null}
       </main>
       <footer className="p-4 border-t border-gray-700">
         <form onSubmit={(e) => { e.preventDefault(); sendMessage() }} className="flex space-x-2">
