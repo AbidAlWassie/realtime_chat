@@ -106,19 +106,18 @@ export default function Home() {
               <CardContent>
                 <ScrollArea className="h-[300px]">
                   {users.map((user) => (
-                    <div
-                      key={user.id}
-                      className="flex items-center space-x-4 mb-4 p-4 hover:bg-slate-700 rounded-lg cursor-pointer"
-                    >
-                      <Avatar>
-                        <AvatarImage src={user.image ?? ``} alt={user.name || 'User'} />
-                        <AvatarFallback className="bg-gray-600">{user.name?.charAt(0) || 'U'}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-medium">{user.name}</p>
-                        <p className="text-sm text-slate-400">Active</p>
+                    <Link href={`/dm/${user.id}`} key={user.id}>
+                      <div className="flex items-center space-x-4 mb-4 p-4 hover:bg-slate-700 rounded-lg cursor-pointer">
+                        <Avatar>
+                          <AvatarImage src={user.image ?? ``} alt={user.name || 'User'} />
+                          <AvatarFallback className="bg-gray-600">{user.name?.charAt(0) || 'U'}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium">{user.name}</p>
+                          <p className="text-sm text-slate-400">Active</p>
+                        </div>
                       </div>
-                    </div>
+                    </Link>
                   ))}
                   {users.length === 0 && <p className="text-center">No users active</p>}
                 </ScrollArea>

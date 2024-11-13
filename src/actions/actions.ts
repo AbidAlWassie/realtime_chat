@@ -163,3 +163,40 @@ export async function fetchMessages(roomId: string) {
     senderId: message.userId,
   }));
 }
+
+export const storeDirectMessage = async (content: string, senderId: string, receiverId: string) => {
+  const message = await prisma.directMessage.create({
+    data: {
+      content,
+      senderId,
+      receiverId,
+    },
+  });
+  return message;
+};
+
+export const fetchDirectMessages = async (senderId: string, receiverId: string) => {
+  const messages = await prisma.directMessage.findMany({
+    where: {
+      OR: [
+        { senderId, receiverId },
+        { senderId: receiverId, receiverId: senderId }
+      ],
+    },
+    orderBy: { createdAt: "asc" },
+  });
+  return messages;
+};
+
+export async function getUserById(userId: string) {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, name: true, image: true }
+    })
+    return user
+  } catch (error) {
+    console.error("Failed to fetch user:", error)
+    return null
+  }
+}
