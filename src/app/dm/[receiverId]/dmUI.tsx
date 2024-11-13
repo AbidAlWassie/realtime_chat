@@ -23,7 +23,7 @@ interface DMUIProps {
   receiverImage: string
 }
 
-const serverAddress = process.env.NEXT_PUBLIC_SOCKET_SERVER_URLl;
+const serverAddress = process.env.NEXT_PUBLIC_SOCKET_SERVER_URL;
 
 export default function DMUI({ receiverId, receiverName, receiverImage }: DMUIProps) {
   const { data: session } = useSession()
