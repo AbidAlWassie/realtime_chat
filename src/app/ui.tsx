@@ -99,14 +99,14 @@ function DMsList({ users }: { users: User[] }) {
         placeholder="Search users..."
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
-        className="border-gray-700 placeholder:text-gray-400 focus:border-blue-500 border-2"
+        className="border-gray-500 placeholder:text-gray-400 focus:border-blue-500 border-2 mb-2"
       />
       <ScrollArea className="h-[64vh]">
         {filteredUsers.map((user) => (
           <div
             key={user.id}
             onClick={() => handleUserClick(user.id)}
-            className="flex items-center space-x-4 mb-4 p-4 hover:bg-slate-700 rounded-lg cursor-pointer"
+            className="flex items-center space-x-4 mb-2 p-4 hover:bg-slate-700 rounded-lg cursor-pointer"
           >
             <Avatar>
               <AvatarImage src={user.image ?? ``} alt={user.name || 'User'} />
@@ -177,7 +177,9 @@ export default function Home() {
             </CardHeader>
             <CardContent className="h-[80vh]">
               <Tabs defaultValue="dms" className="w-full mb-2">
-                <TabsList className="grid w-full grid-cols-2 mb-8">
+
+                <TabsList className="grid w-full grid-cols-2 mb-8 px-0">
+
                   <TabsTrigger 
                     value="dms"
                     className="py-3 data-[state=active]:bg-blue-700 data-[state=active]:text-white data-[state=inactive]:bg-gray-600 mr-1"
@@ -187,6 +189,7 @@ export default function Home() {
                       <p>Direct Messages</p>
                     </div>
                   </TabsTrigger>
+
                   <TabsTrigger 
                     value="rooms"
                     className="py-3 data-[state=active]:bg-blue-700 data-[state=active]:text-white data-[state=inactive]:bg-gray-600 ml-1"
@@ -196,16 +199,20 @@ export default function Home() {
                       <p>Chat Rooms</p>
                     </div>
                   </TabsTrigger>
+
                 </TabsList>
+
                 <TabsContent value="dms">
                   <DMsList users={users} />
                 </TabsContent>
+
                 <TabsContent value="rooms">
                   <ChatRoomsList rooms={rooms} />
                   <div className="mt-4">
                     <CreateRoom />
                   </div>
                 </TabsContent>
+
               </Tabs>
             </CardContent>
           </Card>
