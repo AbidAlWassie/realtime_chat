@@ -5,5 +5,9 @@
       "**/.git": true,
       "**/.next": true,
       "**/node_modules": true
+  },
+  "material-icon-theme.folders.associations": {
+    "actions": "interface",
+    "refs": "constant",
   }
 }
