@@ -16,7 +16,7 @@ const nextConfig = {
             key: "Access-Control-Allow-Origin",
             value:
               process.env.NODE_ENV === "production"
-                ? "https://realtime-chat-by-abid.vercel.app"
+                ? "https://memorial-website-three.vercel.app"
                 : "http://localhost:3000", // Allow localhost in development
           },
           {
