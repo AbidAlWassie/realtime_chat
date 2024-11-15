@@ -9,11 +9,16 @@ import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar"
 import { Button } from "../components/ui/button"
 import {
   Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle
+  CardContent
 } from "../components/ui/card"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../components/ui/dropdown-menu"
 import { Input } from "../components/ui/input"
 import { ScrollArea } from "../components/ui/scroll-area"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs"
@@ -128,9 +133,10 @@ function DMsList({ users }: { users: User[] }) {
 }
 
 export default function Home() {
-  const { status } = useSession()
+  const { data: session, status } = useSession()
   const [users, setUsers] = useState<User[]>([])
   const [rooms, setRooms] = useState<Room[]>([])
+  const router = useRouter()
 
   useEffect(() => {
     async function loadData() {
@@ -151,9 +157,46 @@ export default function Home() {
   }, [status])
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 py-2 px-2">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-slate-900 text-slate-100">
+      {/* Navbar */}
+      <nav className="bg-slate-800 py-4 px-6 flex justify-between items-center">
+        <Link href="/" className="text-2xl font-bold text-indigo-400 hover:text-indigo-300">
+          BlazeChat
+        </Link>
+        {status === "authenticated" && session?.user && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={session.user.image || ''} alt={session.user.name || 'User'} />
+                  <AvatarFallback>{session.user.name?.charAt(0) || 'U'}</AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56 bg-gray-800 border-gray-600" align="end" forceMount>
+              <DropdownMenuLabel className="font-normal">
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium leading-none">{session.user.name}</p>
+                  <p className="text-xs leading-none text-muted-foreground">{session.user.email}</p>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => router.push('/profile')} className="cursor-pointer py-2">
+                Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push('/settings')} className="cursor-pointer py-2">
+                Settings
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => router.push('/api/auth/signout')} className="cursor-pointer py-2">
+                Log out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+      </nav>
 
+      <div className="max-w-6xl mx-auto py-8 px-4">
         {status === "loading" && <p className="text-center">Loading...</p>}
 
         {status === "unauthenticated" && (
@@ -162,24 +205,15 @@ export default function Home() {
             <Button asChild className="bg-indigo-600 text-indigo-50 hover:bg-indigo-700">
               <Link href="/api/auth/signin">Sign In</Link>
             </Button>
-
             <Footer />
           </div>
         )}
 
         {status === "authenticated" && (
-          <Card className="bg-slate-800 border-slate-700">
-            <CardHeader>
-              <CardTitle>BlazeChat</CardTitle>
-              <CardDescription>
-                Direct message a user and create Rooms for group chats.
-              </CardDescription>
-            </CardHeader>
+          <Card className="bg-slate-800 border-slate-700 pt-6 pb-0">
             <CardContent className="h-[80vh]">
               <Tabs defaultValue="dms" className="w-full mb-2">
-
                 <TabsList className="grid w-full grid-cols-2 mb-8 px-0">
-
                   <TabsTrigger 
                     value="dms"
                     className="py-3 data-[state=active]:bg-blue-700 data-[state=active]:text-white data-[state=inactive]:bg-gray-600 mr-1"
@@ -189,7 +223,6 @@ export default function Home() {
                       <p>Direct Messages</p>
                     </div>
                   </TabsTrigger>
-
                   <TabsTrigger 
                     value="rooms"
                     className="py-3 data-[state=active]:bg-blue-700 data-[state=active]:text-white data-[state=inactive]:bg-gray-600 ml-1"
@@ -199,25 +232,21 @@ export default function Home() {
                       <p>Chat Rooms</p>
                     </div>
                   </TabsTrigger>
-
                 </TabsList>
-
                 <TabsContent value="dms">
                   <DMsList users={users} />
                 </TabsContent>
-
                 <TabsContent value="rooms">
                   <ChatRoomsList rooms={rooms} />
                   <div className="mt-4">
                     <CreateRoom />
                   </div>
                 </TabsContent>
-
               </Tabs>
             </CardContent>
           </Card>
         )}
-        <p className="font-bold text-center mt-2">
+        <p className="font-bold text-center mt-6">
           Developed by <span className="text-indigo-400 hover:text-indigo-500"><Link href="https://abidalwassie.me/" target="_blank">Abid Al Wassie</Link></span>
         </p>
       </div>
