@@ -4,6 +4,8 @@
 import { ChatRoomsList } from "@/components/layouts/ChatRooms"
 import { DMsList } from "@/components/layouts/DMsList"
 import { Navbar } from "@/components/layouts/Navbar"
+import { NotificationSystem } from "@/components/Notifications"
+import { Badge } from "@/components/ui/badge"
 import { useSession } from "next-auth/react"
 import Link from "next/link"
 import { useEffect, useState } from 'react'
@@ -32,6 +34,7 @@ export default function Home() {
   const { status } = useSession()
   const [users, setUsers] = useState<User[]>([])
   const [rooms, setRooms] = useState<Room[]>([])
+  const { unreadMessages } = NotificationSystem()
 
   useEffect(() => {
     async function loadData() {
@@ -50,6 +53,8 @@ export default function Home() {
     }
     loadData()
   }, [status])
+
+  const totalUnreadMessages = Object.values(unreadMessages).reduce((a, b) => a + b, 0)
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100">
@@ -75,11 +80,16 @@ export default function Home() {
                 <TabsList className="grid w-full grid-cols-2 mb-8 px-0">
                   <TabsTrigger 
                     value="dms"
-                    className="py-3 data-[state=active]:bg-blue-700 data-[state=active]:text-white data-[state=inactive]:bg-gray-600 mr-1"
+                    className="py-3 data-[state=active]:bg-blue-700 data-[state=active]:text-white data-[state=inactive]:bg-gray-600 mr-1 relative"
                   >
                     <div className="flex justify-center items-center gap-2">
                       <MdMessage />
                       <p>Direct Messages</p>
+                      {totalUnreadMessages > 0 && (
+                        <Badge className="absolute top-[2%] right-[5%] bg-green-500 transform translate-x-1/2 -translate-y-1/2">
+                          {totalUnreadMessages}
+                        </Badge>
+                      )}
                     </div>
                   </TabsTrigger>
                   <TabsTrigger 
@@ -93,7 +103,7 @@ export default function Home() {
                   </TabsTrigger>
                 </TabsList>
                 <TabsContent value="dms">
-                  <DMsList users={users} />
+                  <DMsList users={users} unreadMessages={unreadMessages} />
                 </TabsContent>
                 <TabsContent value="rooms">
                   <ChatRoomsList rooms={rooms} />

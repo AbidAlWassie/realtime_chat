@@ -1,4 +1,9 @@
+'use client'
+'use client'
+
+import { NotificationSystem } from "@/components/Notifications"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useRouter } from "next/navigation"
@@ -11,15 +16,21 @@ interface User {
   image: string | null;
 }
 
-export function DMsList({ users }: { users: User[] }) {
+interface DMsListProps {
+  users: User[];
+}
+
+export function DMsList({ users }: DMsListProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [loadingUserId, setLoadingUserId] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
+  const { unreadMessages, markAsRead } = NotificationSystem()
 
-  const handleUserClick = (userId: string) => {
+  const handleUserClick = async (userId: string) => {
     setIsLoading(true)
     setLoadingUserId(userId)
+    await markAsRead(userId)
     router.push(`/dm/${userId}`)
   }
 
@@ -42,12 +53,19 @@ export function DMsList({ users }: { users: User[] }) {
           <div
             key={user.id}
             onClick={() => handleUserClick(user.id)}
-            className="flex items-center space-x-4 mb-2 p-4 hover:bg-slate-700 rounded-lg cursor-pointer"
+            className="flex items-center space-x-4 mb-2 p-4 hover:bg-slate-700 rounded-lg cursor-pointer relative"
           >
-            <Avatar>
-              <AvatarImage src={user.image ?? ``} alt={user.name || 'User'} />
-              <AvatarFallback className="bg-gray-600">{user.name?.charAt(0) || 'U'}</AvatarFallback>
-            </Avatar>
+            <div className="relative">
+              <Avatar>
+                <AvatarImage src={user.image ?? ``} alt={user.name || 'User'} />
+                <AvatarFallback className="bg-gray-600">{user.name?.charAt(0) || 'U'}</AvatarFallback>
+              </Avatar>
+              {unreadMessages[user.id] > 0 && (
+                <Badge className="absolute -top-2 -right-2 bg-indigo-600 rounded-full">
+                  {unreadMessages[user.id]}
+                </Badge>
+              )}
+            </div>
             <div className="flex-grow">
               <p className="font-medium">{user.name}</p>
               <p className="text-sm text-slate-400">{user.email}</p>

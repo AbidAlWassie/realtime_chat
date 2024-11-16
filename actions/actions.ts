@@ -200,3 +200,54 @@ export async function getUserById(userId: string) {
     return null
   }
 }
+
+export async function storeNotification(receiverId: string, senderId: string, content: string) {
+  try {
+    const notification = await prisma.notification.create({
+      data: {
+        receiverId,
+        senderId,
+        content,
+        read: false,
+      },
+    });
+    console.log('Notification stored:', notification);
+    revalidatePath('/');
+    return notification;
+  } catch (error) {
+    console.error('Failed to store notification:', error);
+    throw error;
+  }
+}
+
+export async function getUnreadNotifications(userId: string) {
+  try {
+    const notifications = await prisma.notification.findMany({
+      where: {
+        receiverId: userId,
+        read: false,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+    return notifications;
+  } catch (error) {
+    console.error('Failed to retrieve notifications:', error);
+    return [];
+  }
+}
+
+export async function markNotificationAsRead(notificationId: string) {
+  try {
+    const updatedNotification = await prisma.notification.update({
+      where: { id: notificationId },
+      data: { read: true },
+    });
+    revalidatePath('/');
+    return updatedNotification;
+  } catch (error) {
+    console.error('Failed to mark notification as read:', error);
+    throw error;
+  }
+}
