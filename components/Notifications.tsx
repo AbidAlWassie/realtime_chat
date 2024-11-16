@@ -3,8 +3,8 @@
 
 import { getUnreadNotifications, markNotificationAsRead, storeNotification } from '@/actions/actions'
 import { useSession } from 'next-auth/react'
-import { useCallback, useEffect, useState } from 'react'
-import io from 'socket.io-client'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import io, { Socket } from 'socket.io-client'
 
 interface Notification {
   id: string
@@ -20,6 +20,7 @@ interface UnreadMessages {
 export function NotificationSystem() {
   const { data: session } = useSession()
   const [unreadMessages, setUnreadMessages] = useState<UnreadMessages>({})
+  const socketRef = useRef<Socket | null>(null)
 
   const loadUnreadNotifications = useCallback(async () => {
     if (session?.user?.id) {
@@ -37,20 +38,35 @@ export function NotificationSystem() {
     }
   }, [session?.user?.id])
 
-  useEffect(() => {
-    if (session?.user?.id) {
-      const newSocket = io(process.env.NEXT_PUBLIC_SOCKET_SERVER_URL)
+  const connectSocket = useCallback(() => {
+    if (!socketRef.current && session?.user?.id) {
+      const serverUrl = process.env.NEXT_PUBLIC_SOCKET_SERVER_URL
+      if (!serverUrl) {
+        console.error('Socket server URL is not defined')
+        return
+      }
 
-      newSocket.on('connect', () => {
-        console.log('Connected to notification system')
-        newSocket.emit('authenticate', session.user.id)
+      console.log('Connecting to socket server:', serverUrl)
+      socketRef.current = io(serverUrl, {
+        transports: ['websocket'],
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000,
       })
 
-      newSocket.on('new_notification', async (notification: Notification) => {
+      socketRef.current.on('connect', () => {
+        console.log('Connected to notification system')
+        socketRef.current?.emit('authenticate', session.user.id)
+      })
+
+      socketRef.current.on('connect_error', (error) => {
+        console.error('Socket connection error:', error)
+      })
+
+      socketRef.current.on('new_notification', async (notification: Notification) => {
         console.log('Received new notification:', notification)
         try {
-          await storeNotification(session.user.id, notification.senderId, notification.content)
-          console.log('Notification stored successfully')
+          const storedNotification = await storeNotification(session.user.id, notification.senderId, notification.content)
+          console.log('Notification stored successfully:', storedNotification)
           setUnreadMessages(prev => ({
             ...prev,
             [notification.senderId]: (prev[notification.senderId] || 0) + 1
@@ -59,14 +75,21 @@ export function NotificationSystem() {
           console.error('Error storing notification:', error)
         }
       })
+    }
+  }, [session?.user?.id])
 
-      loadUnreadNotifications()
+  useEffect(() => {
+    loadUnreadNotifications()
+    connectSocket()
 
-      return () => {
-        newSocket.disconnect()
+    return () => {
+      if (socketRef.current) {
+        console.log('Disconnecting socket')
+        socketRef.current.disconnect()
+        socketRef.current = null
       }
     }
-  }, [session?.user?.id, loadUnreadNotifications])
+  }, [session?.user?.id, loadUnreadNotifications, connectSocket])
 
   const markAsRead = async (senderId: string) => {
     if (session?.user?.id) {

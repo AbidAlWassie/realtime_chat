@@ -17,7 +17,7 @@ const nextConfig = {
             value:
               process.env.NODE_ENV === "production"
                 ? "https://realtime-chat-by-abid.vercel.app"
-                : "http://localhost:3000", // Allow localhost in development
+                : "http://localhost:3000",
           },
           {
             key: "Access-Control-Allow-Methods",
