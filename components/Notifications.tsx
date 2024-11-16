@@ -1,7 +1,7 @@
 // components/Notifications.tsx
 'use client'
 
-import { getUnreadNotifications, markNotificationAsRead, storeNotification } from '@/actions/actions'
+import { getUnreadNotifications, markNotificationAsRead } from '@/actions/actions'
 import { useSession } from 'next-auth/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import io, { Socket } from 'socket.io-client'
@@ -62,18 +62,12 @@ export function NotificationSystem() {
         console.error('Socket connection error:', error)
       })
 
-      socketRef.current.on('new_notification', async (notification: Notification) => {
+      socketRef.current.on('new_notification', (notification: Notification) => {
         console.log('Received new notification:', notification)
-        try {
-          const storedNotification = await storeNotification(session.user.id, notification.senderId, notification.content)
-          console.log('Notification stored successfully:', storedNotification)
-          setUnreadMessages(prev => ({
-            ...prev,
-            [notification.senderId]: (prev[notification.senderId] || 0) + 1
-          }))
-        } catch (error) {
-          console.error('Error storing notification:', error)
-        }
+        setUnreadMessages(prev => ({
+          ...prev,
+          [notification.senderId]: (prev[notification.senderId] || 0) + 1
+        }))
       })
     }
   }, [session?.user?.id])

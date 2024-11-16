@@ -1,6 +1,6 @@
 'use client'
 
-import { fetchDirectMessages, storeDirectMessage } from "@/actions/actions"
+import { fetchDirectMessages, storeDirectMessage, storeNotification } from "@/actions/actions"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -55,7 +55,13 @@ export default function DMUI({ receiverId, receiverName, receiverImage }: DMUIPr
       setMessage("")
 
       try {
-        const savedMessage = await storeDirectMessage(message, session.user.id, receiverId)
+        const [savedMessage, savedNotification] = await Promise.all([
+          storeDirectMessage(message, session.user.id, receiverId),
+          storeNotification(receiverId, session.user.id, `New message: ${message.substring(0, 50)}${message.length > 50 ? '...' : ''}`)
+        ])
+
+        console.log('Message and notification stored:', savedMessage, savedNotification)
+
         socketRef.current?.emit("send_direct_message", {
           ...savedMessage,
           createdAt: new Date(savedMessage.createdAt).toISOString()
