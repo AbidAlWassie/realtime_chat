@@ -1,5 +1,4 @@
 'use client'
-'use client'
 
 import { NotificationSystem } from "@/components/Notifications"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -16,9 +15,15 @@ interface User {
   image: string | null;
 }
 
+interface UnreadMessages {
+  [userId: string]: number;
+}
+
 interface DMsListProps {
   users: User[];
+  unreadMessages: UnreadMessages;
 }
+
 
 export function DMsList({ users }: DMsListProps) {
   const router = useRouter()
