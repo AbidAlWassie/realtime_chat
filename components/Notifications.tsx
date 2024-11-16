@@ -39,7 +39,7 @@ export function NotificationSystem() {
 
   useEffect(() => {
     if (session?.user?.id) {
-      const newSocket = io(process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3001')
+      const newSocket = io(process.env.NEXT_PUBLIC_SOCKET_URL)
 
       newSocket.on('connect', () => {
         console.log('Connected to notification system')
