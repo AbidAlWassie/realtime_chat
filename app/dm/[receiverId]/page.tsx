@@ -7,11 +7,11 @@ import SessionProvider from "../../../components/SessionProvider"
 import DMUI from "./dmUI"
 
 interface DirectMessagePageProps {
-  params: { receiverId: string }
+  params: { receiverId: string };
 }
 
 export default async function DirectMessagePage({ params }: DirectMessagePageProps) {
-  const { receiverId } = params
+  const { receiverId } = await params;
   const session = await getServerSession(authOptions)
 
   if (!session || !session.user) {
