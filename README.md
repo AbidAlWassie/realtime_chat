@@ -10,6 +10,8 @@ It's deployed and fully functional so, [give it a try!](https://realtime-chat-by
 
    ```bash
    npm install
+   # or
+   pnpm install
    ```
 
 2. Start the development server:
