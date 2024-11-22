@@ -1,6 +1,3 @@
-// src/app/page.tsx
-
-// import Link from "next/link";
 import SessionProvider from "../components/SessionProvider";
 import UI from "./ui";
 
@@ -10,4 +7,11 @@ export default function Home() {
       <UI />
     </SessionProvider>
   );
+}
+
+export type SearchParams = { [key: string]: string | string[] | undefined };
+
+export interface PageProps {
+  params: Promise<{ [key: string]: string }>;
+  searchParams: Promise<SearchParams>;
 }

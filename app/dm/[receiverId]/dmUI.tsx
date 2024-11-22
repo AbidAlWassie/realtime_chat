@@ -1,3 +1,4 @@
+// app/dm/[receiverId]/dmUI.tsx
 'use client'
 
 import { fetchDirectMessages, storeDirectMessage, storeNotification } from "@/actions/actions"

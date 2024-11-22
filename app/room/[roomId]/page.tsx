@@ -1,15 +1,12 @@
-// src/app/room/[roomId]/page.tsx
+import { PageProps } from "../../../app/page";
 import SessionProvider from "../../../components/SessionProvider";
 import prisma from "../../../lib/db";
 import RoomUI from "./roomUI";
 
-interface RoomPageProps {
-  params: { roomId: string };
-}
+export default async function RoomPage({ params, searchParams }: PageProps) {
+  const { roomId } = await params;
+  await searchParams;
 
-export default async function RoomPage({ params }: RoomPageProps) {
-  const { roomId } = params;
-  
   const room = await prisma.room.findUnique({
     where: { id: roomId },
   });
@@ -24,10 +21,10 @@ export default async function RoomPage({ params }: RoomPageProps) {
 
   return (
     <div className="bg-gray-900 min-h-screen text-white">
-      {/* <h1 className="text-2xl font-bold mb-4">Room: {roomId}</h1> */}
       <SessionProvider>
         <RoomUI roomId={roomId} />
       </SessionProvider>
     </div>
   );
 }
+
